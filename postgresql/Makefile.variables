@@ -1,0 +1,16 @@
+################################################################################
+# 変数(.gitignore)
+################################################################################
+IGNORE_LIST    := intellij+all,linux,macos,windows,vim,emacs
+GIT_IGNORE_URL := https://www.toptal.com/developers/gitignore/api/$(IGNORE_LIST)
+
+################################################################################
+# 変数(Docker PostgreSQL)
+################################################################################
+DOCKER_NETWORK_NAME := my-pg-network
+DOCKER_PG_TAG       := 12
+DOCKER_PG_HOST      := my-pg
+DOCKER_PG_USER      := pg-hoge-user
+DOCKER_PG_PASSWORD  := pg-hoge-pass
+DOCKER_PG_DATABASE  := pg-hoge-db
+DOCKER_PG_DATA_PATH := $(PWD)/PG_DATA
