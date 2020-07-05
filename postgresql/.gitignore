@@ -1,4 +1,3 @@
-PG_DATA
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij+all,linux,macos,windows,vim,emacs
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij+all,linux,macos,windows,vim,emacs
@@ -232,3 +231,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,linux,macos,windows,vim,emacs
+PG_DATA

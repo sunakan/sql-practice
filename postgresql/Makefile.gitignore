@@ -1,0 +1,19 @@
+include Makefile.variables
+
+################################################################################
+# .gitignoreをDL
+################################################################################
+.gitignore:
+	curl --output .gitignore $(GIT_IGNORE_URL)
+
+################################################################################
+# .gitignoreに別途必要なものを追記
+################################################################################
+.PHONY: add-pgdata-to-gitignore
+add-pgdata-to-gitignore: .gitignore
+	( grep $(shell basename $(DOCKER_PG_DATA_PATH)) .gitignore ) \
+	|| basename $(DOCKER_PG_DATA_PATH) >> .gitignore
+
+.PHONY: setup-gitignore
+setup-gitignore: .gitignore ## .gitignoreをsetup
+	make add-pgdata-to-gitignore
