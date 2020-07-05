@@ -1,0 +1,85 @@
+include Makefile.variables
+
+################################################################################
+# マクロ
+################################################################################
+# psqlコマンドの共通部分
+define psql-shared-command
+  psql \
+    --host $(DOCKER_PG_HOST) \
+    --username $(DOCKER_PG_USER) \
+    --dbname $(DOCKER_PG_DATABASE)
+endef
+
+# dockerでpsqlを叩くためのコマンド
+define docker-postgres-client
+  docker run \
+    --rm \
+    --tty \
+    --entrypoint '' \
+    --network $(DOCKER_NETWORK_NAME) \
+    --env PGPASSWORD=$(DOCKER_PG_PASSWORD) \
+    postgres:$(DOCKER_PG_TAG)
+endef
+
+define create-user-for-pg
+  createuser --user $(DOCKER_PG_USER) user1
+endef
+
+# $(DOCKER_PG_USER)としてcreatedbする
+define create-testdb1
+  createdb --user $(DOCKER_PG_USER) --owner user1 --encoding UTF8 --locale C --template template0 testdb1
+endef
+
+define check-testdb1-by-user1
+  select current_date;
+endef
+
+
+################################################################################
+# タスク
+################################################################################
+.PHONY: ping-pg
+ping-pg: ## 接続チェック(use client)
+	$(docker-postgres-client) $(psql-shared-command) --command 'select 1;'
+
+.PHONY: create-user-for-pg
+create-user-for-pg: ## postgresで使うuserを作成(no client)
+	$(eval COMMAND := $(create-user-for-pg))
+	docker exec -it $(DOCKER_PG_HOST) $(COMMAND)
+
+.PHONY: pg-user-list
+pg-user-list: ## postgresのuser一覧(use client)
+	$(docker-postgres-client) $(psql-shared-command) --command '\du'
+
+.PHONY: pg-db-list
+pg-db-list:  ## postgresのDB一覧(use client)
+	$(eval COMMAND := $(pg-db-list))
+	$(docker-postgres-client) $(psql-shared-command) -l
+
+.PHONY: create-testdb1
+create-testdb1:  ## postgresにDB:testdb1を作成(no client)
+	$(eval COMMAND := $(create-testdb1))
+	docker exec -it $(DOCKER_PG_HOST) $(COMMAND)
+
+.PHONY: check-testdb1-by-user1
+check-testdb1-by-user1: ## user1でtestdb1にアクセス可能か確認(no client)
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --command 'select current_date;'
+
+.PHONY: create-testtable-by-user1
+create-testtable-by-user1: ## user1でtesttableを作成(no client)
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --file /sql/ch03-create-testtable.sql
+
+.PHONY: pg-testdb1-table-list
+pg-testdb1-table-list: ## postgrestestdb1のテーブル一覧
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --command '\dt'
+
+.PHONY: insert-records-in-testtable1
+insert-records-in-testtable1: ## testtable1にレコードを追加
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --command "insert into testtable1(id, name, age) values(101, 'Alice', 20);"
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --command "insert into testtable1(id, name, age) values(102, 'Bob', 25);"
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --command "insert into testtable1(id, name, age) values(103, 'Carol', 22);"
+
+.PHONY: select-all-in-testtable1
+select-all-in-testtable1: ## testtable1のレコード一覧
+	docker exec -it $(DOCKER_PG_HOST) psql --user user1 --dbname testdb1 --command "select * from testtable1;"

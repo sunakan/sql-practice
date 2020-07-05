@@ -27,6 +27,7 @@ up: docker-network pg-data ## DBコンテナを立ち上げる
 		--env LANG=C.UTF-8 \
 		--env TZ=Asia/Tokyo \
 		--mount type=bind,source=$(DOCKER_PG_DATA_PATH)/,target=/var/lib/postgresql/data \
+		--mount type=bind,source=$(PWD)/sql/,target=/sql/,readonly \
 		postgres:$(DOCKER_PG_TAG)
 	make health-check
 
